@@ -1,0 +1,11 @@
+cd "path to your repository"
+git init
+git add .
+git remote add origin <<website>> # ex 'https://github.com/JohnHerndon22/Yahtzee'
+git remote show origin
+git add . # If you want to commit everything. Otherwise use .gitconfig files
+
+
+
+# later
+git commit -m "initial commit" # If you change anything, you can add and commit again...

@@ -1,0 +1,14 @@
+﻿result,seed value,maxRolls,score,comment,used
+1,1,0,0,aces,False
+2,2,0,0,twos,False
+3,3,0,0,threes,False
+4,4,0,0,fours,False
+5,5,0,0,fives,False
+6,6,0,0,sixes,False
+7,1,0,0,3 kind,False
+8,1,0,0,4 kind,False
+9,1,25,0,full house,False
+10,1,30,0,sm str,False
+11,1,40,0,lg str,False
+12,1,50,0,yat,False
+13,1,0,0,chance,False
