@@ -7,5 +7,5 @@ git add . # If you want to commit everything. Otherwise use .gitconfig files
 
 
 
-# later
+# later after changes are made
 git commit -m "initial commit" # If you change anything, you can add and commit again...

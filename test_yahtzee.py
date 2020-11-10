@@ -52,3 +52,12 @@ if valid_selection(dfscore, selection, dfrolls, currentTurn)==True:
     print(test,'passed')
 else:
     print(test,'failed')
+
+
+# test roll window
+dice = [[random.randint(1,6),False],[random.randint(1,6),False],[random.randint(1,6),True],[random.randint(1,6),False],[random.randint(1,6),True]]   
+dicelayout = refresh_dice_table(dice)
+window = sg.Window('Test Window', dicelayout).Finalize()
+event, values = window.read()
+print(event)
+print(values)

@@ -8,52 +8,73 @@ import pandas as pd
 from common import *
 import PySimpleGUI as sg
 
+def initialize_dice():
+    dice = [[0,False],[0,False],[0,False],[0,False],[0,False]]            
+    return dice
 
+def get_selection(values):
+    
+    for counter in range(12):
+        if values[counter]:
+            return counter+1
+    return 0
+    
 
 def main():
     os.system("clear")
+    # initialize overall variables
     dfscore = pd.read_csv('score_templatev2.csv')
     dfbonus = pd.read_csv('score_bonus.csv')
     dfscore = dfscore.set_index('result', drop=False)
-    counter = 1
-
-    dice = [[0,' '],[0,' '],[0,' '],[0,' '],[0,' ']]            # eliminate this?  current turn is dice?
-    dfrolls = pd.DataFrame()
-    currentTurn = list()
-    currentTurn, dicestr = roll_selected_die(dice)
-    window = initialize_window_setup(dice, dfscore, 1, currentTurn)
-
+      
     for turn in range(11):
-     
-        for num_roll in range(2):
-            update_window('-ROLLTABLE-',dicestr,window)
-            update_window('-NUMROLL-','Roll: '+str(num_roll+1),window)
-            event, values = window.read()
+        # 12 turns will fill the scoring 
+        dice = initialize_dice()
+        message_text = ''
             
+        for num_roll in range(3):
+            # each turn has three rolls - unless the user wants to score early
+            dice = roll_selected_die(dice)
+            # put this into a validation loop
+            window, event, values = refresh_read_window(dice, dfscore, num_roll+1, dfbonus, message_text)
+            window.close()
+                    
             if event in (None, 'Quit'): # if user closes window or clicks cancel
-                window.close()
+                # ask do you really want to quit?
                 return
-            else:
-                print('You entered in the textbox:')
-                print(values['selection_choices'])  # get the content of multiline via its unique ke
-                currentTurn = hold_some_die(currentTurn, values['selection_choices'])
-                currentTurn, dicestr = roll_selected_die(currentTurn)
-                # update_window('-ROLLTABLE-',dicestr,window)
-        
-        update_window('-NUMROLL-','Roll: '+str(3),window)        
-        dfscore = process_result(dfscore, currentTurn, dfrolls,window) 
-        dfscorelist = initialize_score_table(dfscore)
-        dice = [[0,' '],[0,' '],[0,' '],[0,' '],[0,' ']]
-        dfrolls = pd.DataFrame()
-        currentTurn = list()
-        currentTurn, dicestr = roll_selected_die(dice)
-        update_window('-SCORETABLE-',dfscorelist,window)
-        update_window('-ROLLTABLE-',dicestr,window)
-        update_window('selection_choices','  ',window)
-        update_window('selection_question','Hold #s?',window)
-
-    
-        
+            elif event in ('Select Score'):
+                dfrolls = count_all_rolls(dice)
+                radio_values = [values[index] for index in range(13)]
+                
+                if True in radio_values:
+                    selection = get_selection(radio_values)
+                    score = valid_selection(dfscore, selection, dice, dfrolls)
+                    if score == 0:
+                        # THIS HAS OK/CANCEL CAN I USE THOSE ITH Y/N IN STEAD?
+                        if sg.popup_get_text('Score will provide zero points, are you sure (y/n)? ')!='y':
+                            print('process zero score....')
+                            # dfscore.loc[selection,'maxRolls'] = 0
+                            dfscore.loc[selection,'score'] = score
+                            dfscore.loc[selection, 'used'] = True
+                            break
+                        else:
+                            message_text = 'select different score....'
+                            continue
+                    else:
+                        # gGOING EARLY DID NOT FALL INTO THIS - CAN BACK WITH ZERO SCORE
+                        print('process score now')
+                        # dfscore.loc[selection,'maxRolls'] = maxRolls
+                        dfscore.loc[selection,'score'] = score
+                        dfscore.loc[selection, 'used'] = True
+                        break
+                else:
+                    message_text = 'Select a score, dummy.....'
+                    print('nothing selected....send back to window with message')    
+                
+            else:       # roll again was hit
+                print(values)  # get the content of multiline via its unique ke
+                print('this is roll again....')
+                dice = hold_some_die(dice, values)
 
     print("Detailed score: ")
     print(dfscore)
