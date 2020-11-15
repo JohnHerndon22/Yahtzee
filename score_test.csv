@@ -1,0 +1,14 @@
+﻿result,seed_value,maxRolls,score,comment,used
+1,1,0,3,aces,FALSE
+2,2,0,8,twos,FALSE
+3,3,0,9,threes,FALSE
+4,4,0,16,fours,FALSE
+5,5,0,10,fives,FALSE
+6,6,0,24,sixes,FALSE
+7,1,0,24,3 kind,FALSE
+8,1,0,23,4 kind,FALSE
+9,1,25,25,full house,FALSE
+10,1,30,30,sm str,FALSE
+11,1,40,40,lg str,FALSE
+12,1,50,0,yat,FALSE
+13,1,0,23,chance,FALSE
