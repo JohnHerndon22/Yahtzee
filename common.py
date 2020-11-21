@@ -7,6 +7,7 @@ import pandas as pd
 import random
 import os
 import PySimpleGUI as sg
+from datetime import datetime
 
 def roll_selected_die(dice):
     # take the current dice set - reroll all of the dice that are NOT marked for hold (hold='*')
@@ -43,7 +44,7 @@ def count_all_rolls(dice):
     dfrolls = dfrolls.set_index('die')
     return dfrolls
 
-def determine_bonus(dfbonus, dfscore, dfrolls, score):
+def determine_bonus(dfbonus, dfscore, dfrolls, score, yah_bonus_eligible):
 
     # determine if upper bonus reached
     if int(dfbonus['upper_bonus']) == 0:
@@ -51,7 +52,7 @@ def determine_bonus(dfbonus, dfscore, dfrolls, score):
             dfbonus['upper_bonus'] = 35
 
     # determine yahtzee bonus
-    if (score != 50) and (dfrolls['rolls'].max()==5):
+    if (score != 50) and (yah_bonus_eligible) and (dfrolls['rolls'].max()==5):
             start_bonus = int(dfbonus['yah_bonus'])
             dfbonus['yah_bonus'] = start_bonus+100
             
@@ -273,7 +274,7 @@ def ask_yesno_question(question):
         margins=(10,10),
         font=fontdef)
 
-    layout = [[sg.Text('Zero Points will be Recorded - Proceed?')],[sg.Button('Yes'), sg.Button('No')]]
+    layout = [[sg.Text(question)],[sg.Button('Yes'), sg.Button('No')]]
 
     window = sg.Window('Scoring', layout, grab_anywhere=False, size=(380,95), return_keyboard_events=True, finalize=True)
 
@@ -289,7 +290,7 @@ def ask_yesno_question(question):
 
 
 
-def compute_score(dfscore, dfbonus):
+def compute_score(dfscore, dfbonus, gameid):
     # called from main window to figure out if bonuses were earned
 
     sg.theme('BluePurple')   # Add a touch of color
@@ -300,6 +301,10 @@ def compute_score(dfscore, dfbonus):
     extra_bonus = str(dfbonus['yah_bonus'][0])
     total_score = dfscore['score'].sum() 
     total_score = int(total_score) + int(upper_bonus) + int(extra_bonus)
+
+    dfgameresults = pd.read_csv('game_results.csv')
+    dfgameresults = dfgameresults.append(insert_game_score(dfscore, upper_bonus, extra_bonus, total_score, gameid), ignore_index=True)
+    dfgameresults.to_csv('game_results.csv', index=False)
 
     sblayout = [[sg.Text(str(score.comment),font=fontdef, size=(20,1)),
             sg.Text(str(score.score),font=fontdef, size=(9,1))] for index, score in dfscoredisplay.iterrows()]
@@ -326,4 +331,29 @@ def compute_score(dfscore, dfbonus):
         return 'New Game'
 
         
+def insert_game_score(dfscore, upper_bonus, extra_bonus, total_score, gameid):
+
+    game_score_dict = {'gameid':'','date_time':'','aces':'','twos':'','threes':'','fours':'','fives':'','sixes':'','3_kind':'','4_kind':'','full_house':'','sm_str':'','lg_str':'','yat':'','chance':'','upper_bonus':'','yah_bonus':'','total_score':''}
+
+    dfscore = dfscore.set_index(['comment'])
+
+    game_score_dict['gameid'] = gameid
+    game_score_dict['date_time'] = str(datetime.now())
+    game_score_dict['aces'] = dfscore.loc['aces','score']
+    game_score_dict['twos'] = dfscore.loc['twos','score']
+    game_score_dict['threes'] = dfscore.loc['threes','score']
+    game_score_dict['fours'] = dfscore.loc['fours','score']
+    game_score_dict['fives'] = dfscore.loc['fives','score']
+    game_score_dict['sixes'] = dfscore.loc['sixes','score']
+    game_score_dict['3_kind'] = dfscore.loc['3 kind','score']
+    game_score_dict['4_kind'] = dfscore.loc['4 kind','score']
+    game_score_dict['full_house'] = dfscore.loc['full house','score']
+    game_score_dict['sm_str'] = dfscore.loc['sm str','score']
+    game_score_dict['lg_str'] = dfscore.loc['lg str','score']
+    game_score_dict['yat'] = dfscore.loc['yat','score']
+    game_score_dict['chance'] = dfscore.loc['chance','score']
+    game_score_dict['upper_bonus'] = upper_bonus
+    game_score_dict['yah_bonus'] = extra_bonus
+    game_score_dict['total_score'] = total_score
     
+    return game_score_dict

@@ -164,7 +164,7 @@ score = 9
 dfscore = pd.read_csv('score_templatev2.csv')
 dfbonus = pd.read_csv('score_bonus.csv')
 dfscore = dfscore.set_index('result', drop=False)
-dfbonus = determine_bonus(dfbonus, dfscore, dfrolls, score)
+dfbonus = determine_bonus(dfbonus, dfscore, dfrolls, score, 0)
 print('yahtzee bonus: ' + str(int(dfbonus['yah_bonus'])))
 if int(dfbonus['yah_bonus'])==0:
     print(test,'passed')
@@ -177,11 +177,13 @@ dice = [[3, True], [3, False], [3, True], [3, True], [3, False]]
 dfrolls = count_all_rolls(dice)
 # selection = 12
 score = 50
+yah_bonus_eligible = True
 dfscore = pd.read_csv('score_templatev2.csv')
 dfbonus = pd.read_csv('score_bonus.csv')
 dfscore = dfscore.set_index('result', drop=False)
-dfbonus = determine_bonus(dfbonus, dfscore, dfrolls, score)
+dfbonus = determine_bonus(dfbonus, dfscore, dfrolls, score, yah_bonus_eligible)
 print('yahtzee bonus: ' + str(int(dfbonus['yah_bonus'])))
+# should not return bonus = score = 50
 if int(dfbonus['yah_bonus'])==0:
     print(test,'passed')
 else:
@@ -190,48 +192,48 @@ else:
 
 #setup for test - expect failure
 test = 'yahztee bonus obtained'
-dice = [[3, True], [3, False], [3, True], [3, True], [3, False]]
+dice = [[3, True], [3, False], [2, True], [3, True], [3, False]]
 dfrolls = count_all_rolls(dice)
 # selection = 12
 score = 15
+yah_bonus_eligible = True
 dfscore = pd.read_csv('score_templatev2.csv')
 dfbonus = pd.read_csv('score_bonus.csv')
 dfscore = dfscore.set_index('result', drop=False)
-dfbonus = determine_bonus(dfbonus, dfscore, dfrolls, score)
+dfbonus = determine_bonus(dfbonus, dfscore, dfrolls, score, yah_bonus_eligible)
 print('yahtzee bonus: ' + str(int(dfbonus['yah_bonus'])))
-if int(dfbonus['yah_bonus'])==100:
+if int(dfbonus['yah_bonus'])==0:
     print(test,'passed')
 else:
     print(test,'failed')
 
 #setup for test - expect failure
 test = 'yahztee bonus double not obtained'
-dice = [[3, True], [3, False], [3, True], [3, True], [2, False]]
+dice = [[3, True], [3, False], [3, True], [3, True], [3, False]]
 dfrolls = count_all_rolls(dice)
-# selection = 12
+yah_bonus_eligible = True
 score = 15
 dfscore = pd.read_csv('score_templatev2.csv')
 dfbonus = pd.read_csv('score_bonus.csv')
 dfbonus['yah_bonus']=100
 dfscore = dfscore.set_index('result', drop=False)
-dfbonus = determine_bonus(dfbonus, dfscore, dfrolls, score)
+dfbonus = determine_bonus(dfbonus, dfscore, dfrolls, score, yah_bonus_eligible)
 print('yahtzee bonus: ' + str(int(dfbonus['yah_bonus'])))
-if int(dfbonus['yah_bonus'])==100:
+if int(dfbonus['yah_bonus'])==200:
     print(test,'passed')
 else:
     print(test,'failed')
 
-
 #setup for test - expect failure
-test = 'final scoring'
-# dice = [[3, True], [3, False], [3, True], [3, True], [2, False]]
-# dfrolls = count_all_rolls(dice)
-# selection = 12
-# score = 15
-dfscore = pd.read_csv('score_test.csv')
-dfbonus = pd.read_csv('bonus_test.csv')
-dfbonus['yah_bonus']=100
-dfscore = dfscore.set_index('result', drop=False)
-choice = compute_score(dfscore, dfbonus)
-print(choice)
+# test = 'final scoring'
+# # dice = [[3, True], [3, False], [3, True], [3, True], [2, False]]
+# # dfrolls = count_all_rolls(dice)
+# # selection = 12
+# gameid = 20
+# dfscore = pd.read_csv('score_test_yah.csv')
+# dfbonus = pd.read_csv('bonus_test.csv')
+# dfbonus['yah_bonus']=100
+# dfscore = dfscore.set_index('result', drop=False)
+# choice = compute_score(dfscore, dfbonus, gameid)
+# print(choice)
 

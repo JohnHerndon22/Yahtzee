@@ -16,6 +16,9 @@ def main():
         # initialize overall variables
         dfscore = pd.read_csv('score_templatev2.csv')
         dfbonus = pd.read_csv('score_bonus.csv')
+        dfgameresults = pd.read_csv('game_results.csv')
+        gameid = dfgameresults['gameid'].max() + 1
+
         dfscore = dfscore.set_index('result', drop=False)
         pts_question = 'Zero Points will be Recorded - Proceed?'
         dice = initialize_dice()
@@ -55,9 +58,10 @@ def main():
                                 continue
                         else:
                             
+                            yah_bonus_eligible = [(dfscore.loc[12,'score']==50) or (not dfscore.loc[12,'used'])]             # get the previous score
                             dfscore.loc[selection,'score'] = score
                             dfscore.loc[selection, 'used'] = True
-                            dfbonus = determine_bonus(dfbonus, dfscore, dfrolls, score)
+                            dfbonus = determine_bonus(dfbonus, dfscore, dfrolls, score, yah_bonus_eligible)
                             dice = initialize_dice()
                             break
                     else:
@@ -69,7 +73,7 @@ def main():
                     dice = hold_some_die(dice, values)
         
         window.close()
-        if compute_score(dfscore, dfbonus) == "Quit":
+        if compute_score(dfscore, dfbonus, gameid) == "Quit":
             return
         else:                   # if new game moves to the next
             continue
