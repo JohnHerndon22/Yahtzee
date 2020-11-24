@@ -8,17 +8,23 @@ import random
 import os
 import PySimpleGUI as sg
 from datetime import datetime
+import numpy as np
 
 def roll_selected_die(dice):
     # take the current dice set - reroll all of the dice that are NOT marked for hold (hold='*')
     # returns a table dicestr with the current rolls - to format the window
     new_dice = list()
+    print('roll selected die - before')
+    print(dice)
     for (roll,hold) in dice:
         if hold:    
             pass
         else:
             roll = random.randint(1,6)
         new_dice.append([roll, hold])
+    
+    print('roll selected die - after')
+    print(new_dice)
     
     return new_dice
 
@@ -202,7 +208,7 @@ def initialize_read_window(dice, dfscore, num_roll, dfbonus, message_text):
     
     return window
 
-def refresh_read_window(dice, dfscore, num_roll, dfbonus, message_text, window):
+def refresh_read_window(dice, dfscore, num_roll, dfbonus, message_text, window, dfrolldecisions_game, gameid):
     # refresh the window at the start of the game - get the score and ask for a button/radio/checkbox push
 
     # roll again is disabled if num_roll = 3
@@ -235,10 +241,26 @@ def refresh_read_window(dice, dfscore, num_roll, dfbonus, message_text, window):
     
     for i in [index for index in range(5)]:
         update_window('hold' + str(i+1),dice[i][1],window)
-
+    # print("before reading screen")
+    # print(dice)
     event, values = window.read()
+    dfrolldecisions_game = dfrolldecisions_game.append(store_game_decision(values, dice, gameid), ignore_index=True)
 
-    return window, event, values
+    return window, event, values, dfrolldecisions_game
+
+def store_game_decision(values, dice, gameid):
+    dict_gamedecision = {'gameid':'',    'roll1':'',    'old_hold1':'',    'new_hold1':'',    'roll2':'',    'old_hold2':'',    'new_hold2':'',    'roll3':'',    'old_hold3':'',    'new_hold3':'',    'roll4':'',    'old_hold4':'',    'new_hold4':'',    'roll5':'',    'old_hold5':'',    'new_hold5':'',    'score':''}
+    
+    dict_gamedecision['gameid'] = gameid 
+    for x in range(5):
+        dict_gamedecision['roll'+str(x+1)] = dice[x][0] 
+        dict_gamedecision['old_hold' + str(x+1)] = dice[x][1]
+        dict_gamedecision['new_hold' + str(x+1)] = values['hold'+ str(x+1)]
+
+    dict_gamedecision['score'] = np.nan
+
+    return dict_gamedecision
+
 
 def update_window(element,value,window):
     # update elements of the window 
@@ -261,7 +283,7 @@ def hold_all_dice(dice):
 def get_selection(values, dfscore):
     
     for counter in range(13):
-        #qqqq
+        
         if values[counter]: 
             if dfscore.loc[counter+1,'score']==0:
                 return counter+1
@@ -290,7 +312,7 @@ def ask_yesno_question(question):
 
 
 
-def compute_score(dfscore, dfbonus, gameid):
+def compute_score(dfscore, dfbonus, gameid, dfrolldecisions_game, running):
     # called from main window to figure out if bonuses were earned
 
     sg.theme('BluePurple')   # Add a touch of color
@@ -302,9 +324,16 @@ def compute_score(dfscore, dfbonus, gameid):
     total_score = dfscore['score'].sum() 
     total_score = int(total_score) + int(upper_bonus) + int(extra_bonus)
 
-    dfgameresults = pd.read_csv('game_results.csv')
-    dfgameresults = dfgameresults.append(insert_game_score(dfscore, upper_bonus, extra_bonus, total_score, gameid), ignore_index=True)
-    dfgameresults.to_csv('game_results.csv', index=False)
+    # write game results - false - hold off for testing roll decisions
+    if running:
+        dfgameresults = pd.read_csv('game_results.csv')
+        dfgameresults = dfgameresults.append(insert_game_score(dfscore, upper_bonus, extra_bonus, total_score, gameid), ignore_index=True)
+        dfgameresults.to_csv('game_results.csv', index=False)
+
+    # save decisions
+    dfrolldecisions_all = pd.read_csv('roll_decisions.csv')
+    dfrolldecisions_all = dfrolldecisions_all.append(dfrolldecisions_game)
+    dfrolldecisions_all.to_csv('roll_decisions.csv', index=False)                   # change from test after 
 
     sblayout = [[sg.Text(str(score.comment),font=fontdef, size=(20,1)),
             sg.Text(str(score.score),font=fontdef, size=(9,1))] for index, score in dfscoredisplay.iterrows()]

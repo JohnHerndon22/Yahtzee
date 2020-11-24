@@ -3,6 +3,68 @@
 import pandas as pd
 from common import *
 
+
+# test = 'store game decision - final'
+# print(test)
+# dfrolldecisions_game = pd.read_csv('declog.csv')
+# # dice = [[3, True], [3, True], [4, True], [5, True], [3, False]]
+# # values = {'hold1': False, 'hold2': True, 'hold3': True, 'hold4': False, 'hold5': True}
+# gameid = 'test_1000'
+# dfscore = pd.read_csv('score_templatev2.csv')
+# dfbonus = pd.read_csv('score_bonus_test.csv')
+# dfbonus['yah_bonus']=100
+# # dfscore = dfscore.set_index('result', drop=False)
+# # choice = compute_score(dfscore, dfbonus, gameid)
+# print('the choice is: ' + compute_score(dfscore, dfbonus, gameid, dfrolldecisions_game, False))
+# dfrolldecisions_all = pd.read_csv('roll_decisions_test.csv')
+# print('df all roll decisions: ')
+# print(dfrolldecisions_all)
+
+test = 'ROLLS DICE - SAME?'
+dice = [[1, False], [2, True], [5, True], [6, True], [3, True]]
+before_dice = dice
+dif_role = 0
+
+for x in range(100):
+    dice = roll_selected_die(dice)
+    if dice[0][0]==before_dice[0][0]:
+        print('matches')
+    else:
+        print('different role')
+        dif_role +=1
+    dice = before_dice
+
+print('results are: ',str(dif_role),' out of 100')
+quit()
+
+# roll selected die - after
+# [[6, False], [2, True], [5, True], [6, True], [3, True]]
+# roll selected die - before
+# [[0, False], [0, False], [0, False], [0, False], [0, False]]
+# roll selected die - after
+# [[4, False], [3, False], [6, False], [1, False], [1, False]]
+# after hold some die
+# [[4, True], [3, True], [6, True], [1, False], [1, False]]
+# roll selected die - before
+# [[4, True], [3, True], [6, True], [1, False], [1, False]]
+# roll selected die - after
+# [[4, True], [3, True], [6, True], [1, False], [1, False]]
+# after hold some die
+# [[4, True], [3, True], [6, True], [1, False], [1, False]]
+# roll selected die - before
+# [[4, True], [3, True], [6, True], [1, False], [1, False]]
+# roll selected die - after
+# [[4, True], [3, True], [6, True], [3, False], [2, False]]
+
+test = 'store game decision - working?'
+print(test)
+dice = [[3, True], [3, True], [4, True], [5, True], [3, False]]
+values = {'hold1': False, 'hold2': True, 'hold3': True, 'hold4': False, 'hold5': True}
+gameid = 'test_1000'
+print(store_game_decision(values, dice, gameid))
+
+
+
 #setup for test - expect failure
 test = 'small straight test bad->'
 dice = [[3, True], [3, False], [4, True], [5, True], [3, False]]
@@ -156,15 +218,17 @@ else:
     print(test,'failed')
 
 #setup for test - expect failure
-test = 'yahztee bonus->'
-dice = [[3, True], [3, False], [4, True], [5, True], [3, False]]
+test = 'yahztee bonus-> bug still here?'
+dice = [[3, True], [3, False], [3, True], [3, True], [3, False]]
 dfrolls = count_all_rolls(dice)
 # selection = 3
 score = 9
-dfscore = pd.read_csv('score_templatev2.csv')
-dfbonus = pd.read_csv('score_bonus.csv')
+dfscore = pd.read_csv('score_yah_test.csv')             # has yahtzee = True
+dfbonus = pd.read_csv('score_bonus.csv')                # blank bonus = 0
 dfscore = dfscore.set_index('result', drop=False)
-dfbonus = determine_bonus(dfbonus, dfscore, dfrolls, score, 0)
+yah_bonus_eligible = (dfscore.loc[12,'score']==50) and (dfscore.loc[12,'used'])
+dfbonus = determine_bonus(dfbonus, dfscore, dfrolls, score, yah_bonus_eligible)
+# determine_bonus(dfbonus, dfscore, dfrolls, score, yah_bonus_eligible)
 print('yahtzee bonus: ' + str(int(dfbonus['yah_bonus'])))
 if int(dfbonus['yah_bonus'])==0:
     print(test,'passed')

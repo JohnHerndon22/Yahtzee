@@ -17,6 +17,8 @@ def main():
         dfscore = pd.read_csv('score_templatev2.csv')
         dfbonus = pd.read_csv('score_bonus.csv')
         dfgameresults = pd.read_csv('game_results.csv')
+        # dfrolldecisions_all = pd.read_csv('roll_decisions.csv') 
+        dfrolldecisions_game = pd.read_csv('roll_decisions_template.csv')
         gameid = dfgameresults['gameid'].max() + 1
 
         dfscore = dfscore.set_index('result', drop=False)
@@ -32,7 +34,7 @@ def main():
             # for num_roll in range(3):
                 # each turn has three rolls - unless the user wants to score early
                 dice = roll_selected_die(dice)
-                window, event, values = refresh_read_window(dice, dfscore, num_roll, dfbonus, message_text, window)
+                window, event, values, dfrolldecisions_game = refresh_read_window(dice, dfscore, num_roll, dfbonus, message_text, window, dfrolldecisions_game, gameid)
                 message_text = ''
 
                 if event in (None, 'Quit'): # if user closes window or clicks cancel
@@ -50,6 +52,7 @@ def main():
                             if ask_yesno_question(pts_question):
                                 dfscore.loc[selection,'score'] = score
                                 dfscore.loc[selection, 'used'] = True
+                                dfrolldecisions_game['score'][dfrolldecisions_game.index.max()]=score
                                 dice = initialize_dice()
                                 break
                             else:
@@ -58,10 +61,11 @@ def main():
                                 continue
                         else:
                             
-                            yah_bonus_eligible = [(dfscore.loc[12,'score']==50) or (not dfscore.loc[12,'used'])]             # get the previous score
+                            yah_bonus_eligible = (dfscore.loc[12,'score']==50) or (not dfscore.loc[12,'used'])            # get the previous score
                             dfscore.loc[selection,'score'] = score
                             dfscore.loc[selection, 'used'] = True
                             dfbonus = determine_bonus(dfbonus, dfscore, dfrolls, score, yah_bonus_eligible)
+                            dfrolldecisions_game['score'][dfrolldecisions_game.index.max()]=score
                             dice = initialize_dice()
                             break
                     else:
@@ -71,9 +75,11 @@ def main():
                 else:       # roll again was hit
                     num_roll+=1
                     dice = hold_some_die(dice, values)
+                    print('after hold some die')
+                    print(dice)
         
         window.close()
-        if compute_score(dfscore, dfbonus, gameid) == "Quit":
+        if compute_score(dfscore, dfbonus, gameid, dfrolldecisions_game, True) == "Quit":
             return
         else:                   # if new game moves to the next
             continue
